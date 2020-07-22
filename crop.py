@@ -2,12 +2,19 @@ import cv2
 import numpy as np
 import os
 import time
+import argparse
 
 p1,p2 =tuple(),tuple()
-image_path = ".\images"
 i=0
-def call_back_func(event, x, y, flags, param):
-    
+
+a = argparse.ArgumentParser()
+a.add_argument("-i", "--image", required=True, help="Path to the images that needed to be cropped")
+a.add_argument("-c", "--cropped", required=True, help="Path to where cropped images are stored")
+args = vars(a.parse_args())
+
+image_path = args["image"]
+
+def call_back_func(event, x, y, flags, param):    
     global p1,p2,i,roi
     if event == cv2.EVENT_LBUTTONDOWN:
         p1 = (x,y)
@@ -15,14 +22,17 @@ def call_back_func(event, x, y, flags, param):
     elif event == cv2.EVENT_LBUTTONUP:
         p2 = (x,y)
         print("chere rakhse",x,"  ",y)
-        roi = img[p1[1]:p2[1],p1[0]:p2[0]] 
-        cv2.imshow('ruki',roi)
-        cv2.imwrite("D:\\image_cropper\\corped_images\\"+str(i)+".jpg",roi)
+        try:
+            roi = img[p1[1]:p2[1],p1[0]:p2[0]]
+            cv2.imshow('cropped',roi)
+        except:
+            roi = img[p2[1]:p1[1],p2[0]:p1[0]] 
+            cv2.imshow('cropped',roi)
+        pa = os.path.join(args["cropped"],"",str(i)+'.jpg')
+        pa = pa.replace("/","\\")
+        print(pa)
+        cv2.imwrite(pa,roi)
         
-    
-    
-
-
 images = os.listdir(image_path)
 
 while i<len(images):
@@ -31,9 +41,7 @@ while i<len(images):
     k = cv2.waitKey(33)
     cv2.imshow('image',img)
     if k == ord('a'):
-        #black = np.zeros((512,512,3),np.uint8)
-        #cv2.imshow('ruki',black)
-        cv2.destroyWindow('ruki')
+        cv2.destroyWindow('cropped')
         i+=1
     cv2.setMouseCallback('image',call_back_func)
     
